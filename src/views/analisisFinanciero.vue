@@ -35,7 +35,16 @@
         
                 
       <h3>Gráfico de Criptomonedas</h3>
-      <BarChart :chart-data="chartData" :chart-options="chartOptions" />
+      <div class="general">
+      <div v-if="chartData.labels.length === 0">
+      <p>Cargando datos del gráfico...</p>
+      </div>
+      <BarChart
+      v-else
+      :chart-data="chartData"
+      :chart-options="chartOptions"
+      />
+      </div>
         </div>
         <footer>
   <p> © 2024 - alejandro.dalmazzo@gmail.com - cel 3564-331134 - Todos los derechos reservados.</p>
@@ -64,34 +73,36 @@ export default {
     BarChart: Bar,
   },
   data() {
-    return {
-      resumenCriptomonedas: [],
-      resumenTotal: 0,
-      criptomonedas: {},
-      chartData: {
-        labels: [], // Nombres de las criptomonedas
-        datasets: [
-          {
-            label: "Saldo",
-            backgroundColor: "#42A5F5",
-            data: [], // Saldos de las criptomonedas
-          },
-          {
-            label: "Cantidad Disponible",
-            backgroundColor: "#66BB6A",
-            data: [], // Cantidades disponibles
-          },
-        ],
-      },
-      chartOptions: {
-        responsive: true,
-        maintainAspectRatio: false,
-      },
-    };
-  },
+  return{
+    resumenCriptomonedas: [],
+    resumenTotal: 0,
+    criptomonedas: {},
+    chartData: {
+      labels: [], // Siempre un array
+      datasets: [
+        {
+          label: "Saldo",
+          backgroundColor: "#42A5F5",
+          data: [], // Siempre un array
+        },
+        {
+          label: "Cantidad Disponible",
+          backgroundColor: "#66BB6A",
+          data: [], // Siempre un array
+        },
+      ],
+    },
+    chartOptions: {
+      responsive: true,
+      maintainAspectRatio: false,
+    },
+  };
+},
+
   created() {
     this.obtenerEstadoActual();
   },
+  
   methods: {
     listadoCriptomonedas() {
       return [
@@ -158,6 +169,8 @@ export default {
               this.criptomonedas[idCriptomoneda].cantidadVendida;
           }
 
+          console.log("Datos para el gráfico:", this.chartData);
+
           this.resumenCriptomonedas = Object.values(this.criptomonedas).map(
             (crip) => {
               crip.resultado = crip.comprado - crip.vendido;
@@ -167,15 +180,24 @@ export default {
           );
 
           // Actualizar los datos del gráfico
-          this.chartData.labels = this.resumenCriptomonedas.map((crip) =>
-            this.obtenerNombreCripto(crip.idCriptomoneda)
-          );
-          this.chartData.datasets[0].data = this.resumenCriptomonedas.map(
-            (crip) => crip.resultado
-          );
-          this.chartData.datasets[1].data = this.resumenCriptomonedas.map(
-            (crip) => crip.cantidadDisponible
-          );
+                    this.chartData = {
+            labels: this.resumenCriptomonedas.map((crip) =>
+              this.obtenerNombreCripto(crip.idCriptomoneda)
+            ),
+            datasets: [
+              {
+                label: "Saldo",
+                backgroundColor: "#42A5F5",
+                data: this.resumenCriptomonedas.map((crip) => crip.resultado),
+              },
+              {
+                label: "Cantidad Disponible",
+                backgroundColor: "#66BB6A",
+                data: this.resumenCriptomonedas.map((crip) => crip.cantidadDisponible),
+              },
+            ],
+          };
+
         });
     },
   },
@@ -188,7 +210,7 @@ export default {
 
 table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: collapse;  
 }
 
 th,
